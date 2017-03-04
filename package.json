@@ -1,0 +1,17 @@
+{
+  "name": "generate",
+  "version": "0.0.1",
+  "description": "Generate a Project for Kdenlive with title clips pre-filled\\",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^2.0.0",
+    "soundcloud-node-es6": "0.0.1",
+    "underscore.template": "^0.1.7"
+  }
+}
