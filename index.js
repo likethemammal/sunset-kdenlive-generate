@@ -18,10 +18,15 @@ const data = {
     ]
 }
 const dir = 'generated/project'
+const clipsDir = `${dir}/Clips`
 const templateProjectDir = 'templates/project'
 const templateTitleDir = 'templates/titles'
 const templateSuffix = '.kdenlivetitle.ejs'
-const fileSuffix = '.kdenlivetitle'
+const fileTitleSuffix = '.kdenlivetitle'
+const fileProjectSuffix = '.kdenlive'
+const fileProject = `${dir}/SaaS${fileProjectSuffix}`
+const fileProjectPrefix = 'SaaS.'
+const SC_ID = '587aa2d384f7333a886010d5f52f302a';
 
 
 
@@ -85,6 +90,21 @@ function getTemplateValues(key, cb) {
     }
 }
 
+function createFileFromTemplate(key, values) {
+    const src = `${templateTitleDir}/${key}${templateSuffix}`
+    const UnderscoreTemplate = require('underscore.template');
+    const template = UnderscoreTemplate(fs.readFileSync(src).toString());
+    const file = template(values)
+    const dest = `${dir}/${key}${fileTitleSuffix}`
+
+    fs.writeFileSync(dest, file);
+}
+
+
+
+
+
+//moving files
 function copyTemplateDir() {
     const fse = require('fs-extra')
 
@@ -101,21 +121,24 @@ function copyTemplateDir() {
     })
 }
 
-function createFileFromTemplate(key, values) {
-    const src = `${templateTitleDir}/${key}${templateSuffix}`
-    const UnderscoreTemplate = require('underscore.template');
-    const template = UnderscoreTemplate(fs.readFileSync(src).toString());
-    const file = template(values)
-    const dest = `${dir}/${key}${fileSuffix}`
+function renameProjectFile() {
+    
+    
+    
+    //get date from static data
+    //create new date object from that
+    //get m.d.yy format
 
-    fs.writeFileSync(dest, file);
+    //move file from src to new renamed dest
 }
+
 
 
 
 
 //soundcloud
 function getSoundCloudSongs(links, cb) {
+    const wget = require('node-wget')
 
     // let args = process.argv
     //
@@ -128,25 +151,35 @@ function getSoundCloudSongs(links, cb) {
 
     links.map((link, i) => {
         getSoundCloudSong(link, (song) => {
+            const username = song.user.username
+            const url = song.stream_url + '&client_id=' + SC_ID
+            const title = song.title
+            const endOfLinks = i === links.length - 1
+
             if (!artistName) {
-                artistName = song.user.username
-            } else if (artistName !== song.user.username) {
+                artistName = username
+            } else if (artistName !== username) {
                 artistName = 'Various'
             }
 
-            //end of loop
-            if (i === links.length - 1) {
-                cb({
-                    artist: artistName
-                })
-            }
+            wget({
+                url: url,
+                dest: `${dir}/${username} - ${title}.mp3`
+            }, () => {
+
+                //end of loop
+                if (endOfLinks) {
+                    cb({
+                        artist: artistName
+                    })
+                }
+            });
         })
     })
 }
 
 function getSoundCloudSong(link, cb) {
     const https = require('https')
-    const SC_ID = '587aa2d384f7333a886010d5f52f302a';
 
     https.get(
         'https://api.soundcloud.com/resolve.json?url='+link+'/tracks&client_id='+SC_ID,
