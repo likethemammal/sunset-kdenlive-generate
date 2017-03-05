@@ -1,15 +1,6 @@
-//--copy the template project directory
-//-- accept links as args
-//-- get data from SC
-//--import template files and feed in data
-//add audio files to project dir
-//rename project file and dir, include date in value
-
-
-
 const fs = require('fs')
 const data = {
-    date: '1/2/3',
+    date: '1/2/17',
     time: '12:45 EST',
     music: [
         'https://soundcloud.com/l1fescape/butter',
@@ -17,7 +8,9 @@ const data = {
         'https://soundcloud.com/l1fescape/butter',
     ]
 }
-const dir = 'generated/project'
+const dateDotted = getDateDotFormat()
+
+const dir = `generated/${dateDotted}/project`
 const clipsDir = `${dir}/Clips`
 const templateProjectDir = 'templates/project'
 const templateTitleDir = 'templates/titles'
@@ -33,7 +26,6 @@ const SC_ID = '587aa2d384f7333a886010d5f52f302a';
 
 
 
-
 init()
 
 
@@ -42,19 +34,23 @@ init()
 
 function init() {
 
-    //todo: add dir copying
-    
-    getTemplateFiles(templateTitleDir, (templates) => {
-        templates.map((template) => {
+    copyTemplateDir(() => {
+        renameProjectFile(() => {
+            getTemplateFiles(templateTitleDir, (templates) => {
+                templates.map((template) => {
 
-            const endOfKey = template.indexOf(templateSuffix)
-            const key = template.substring(0, endOfKey)
+                    const endOfKey = template.indexOf(templateSuffix)
+                    const key = template.substring(0, endOfKey)
 
-            getTemplateValues(key, (values) => {
-                createFileFromTemplate(key, values)
+                    getTemplateValues(key, (values) => {
+                        createFileFromTemplate(key, values)
+                    })
+                })
             })
         })
     })
+
+
 }
 
 
@@ -105,10 +101,8 @@ function createFileFromTemplate(key, values) {
 
 
 //moving files
-function copyTemplateDir() {
+function copyTemplateDir(cb) {
     const fse = require('fs-extra')
-
-    //todo: create new folder with name of date
 
     fse.ensureDir(dir, err => {
         if (err) return console.error(err)
@@ -117,19 +111,23 @@ function copyTemplateDir() {
         fse.copy(templateProjectDir, dir, err => {
             if (err) return console.error(err)
             console.log("success!")
+
+            cb()
         })
     })
 }
 
-function renameProjectFile() {
-    
-    
-    
-    //get date from static data
-    //create new date object from that
-    //get m.d.yy format
+function renameProjectFile(cb) {
 
-    //move file from src to new renamed dest
+    const fs = require('fs-extra')
+
+    fs.move(fileProject, `${dir}/${fileProjectPrefix}${dateDotted}${fileProjectSuffix}`, err => {
+        if (err) return console.error(err)
+
+        console.log('success!')
+        cb()
+    })
+
 }
 
 
@@ -204,4 +202,18 @@ function getSoundCloudSong(link, cb) {
         }).on('error', (e) => {
         console.error(e);
     });
+}
+
+
+
+
+//format data
+function getDateDotFormat() {
+    const date = new Date(data.date)
+
+    const day = date.getDate()
+    const year = (date.getFullYear() + '').substring(2)
+    const month = date.getMonth() + 1
+
+    return `${month}.${day}.${year}`
 }
